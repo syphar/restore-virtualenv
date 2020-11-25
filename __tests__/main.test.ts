@@ -1,28 +1,42 @@
-import {wait} from '../src/wait'
-import * as process from 'process'
-import * as cp from 'child_process'
-import * as path from 'path'
+import * as utils from '../src/utils'
 
-test('throws invalid number', async () => {
-  const input = parseInt('foo', 10)
-  await expect(wait(input)).rejects.toThrow('milliseconds not a number')
+const test_requirement_files = '__tests__/dummy*.txt'
+const test_requirement_hash =
+  process.platform === 'win32'
+    ? 'b9e86779eb99022d81a88623a4c52a25'
+    : '0d370d5547fa12da0111fbdfbf065f45'
+
+test('get cache key', async () => {
+  expect(await utils.cache_key(test_requirement_files, 'custom')).toBe(
+    `${process.env.RUNNER_OS}-pip-download-cache-custom-${test_requirement_hash}`
+  )
 })
 
-test('wait 500 ms', async () => {
-  const start = new Date()
-  await wait(500)
-  const end = new Date()
-  var delta = Math.abs(end.getTime() - start.getTime())
-  expect(delta).toBeGreaterThan(450)
+test('get restore key', () => {
+  expect(utils.restore_key('custom')).toBe(
+    `${process.env.RUNNER_OS}-pip-download-cache-custom`
+  )
 })
 
-// shows how the runner will run a javascript action with env / stdout protocol
-test('test runs', () => {
-  process.env['INPUT_MILLISECONDS'] = '500'
-  const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
-  const options: cp.ExecFileSyncOptions = {
-    env: process.env
-  }
-  console.log(cp.execFileSync(np, [ip], options).toString())
+test('get cache directory', () => {
+  expect(utils.pip_cache_directory()).toContain('pip')
+})
+
+test('get hash for file glob', async () => {
+  var hash = await utils.hashFiles(test_requirement_files)
+
+  expect(hash).toBe(test_requirement_hash)
+})
+
+test('get hash for multiple globs', async () => {
+  var hash = await utils.hashFiles('**/dummy_file2.txt\n**/dummy_file.txt')
+
+  expect(hash).toBe(test_requirement_hash)
+})
+
+test('get hash fails without files', async () => {
+  const testpattern = '__tests__/not_existing_pattern*.txt'
+  expect(utils.hashFiles(testpattern)).rejects.toEqual(
+    Error(`could not find requirement-files with pattern ${testpattern}`)
+  )
 })

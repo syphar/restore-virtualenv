@@ -1,0 +1,234 @@
+---
+name: 'CI'
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  node_version: "12.x"
+
+jobs:
+  cancel-previous:
+    runs-on: ubuntu-latest
+    steps:
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+  lint:
+    needs: cancel-previous
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ${{ env.node_version }}
+
+      - name: restore npm cache
+        uses: c-hive/gha-npm-cache@v1
+
+      - name: installing dependencies
+        run: npm ci
+
+      - name: check format
+        run: npm run format-check
+
+      - name: run lint
+        run: npm run lint
+
+      - name: Cancel complete workflow if this job fails...
+        if: ${{ failure() }}
+        uses: andymckay/cancel-action@0.2
+
+  unittests:
+    needs: cancel-previous
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ${{ env.node_version }}
+
+      - name: restore npm cache
+        uses: c-hive/gha-npm-cache@v1
+
+      - name: installing dependencies
+        run: npm ci
+
+      - name: run tests
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 2
+          max_attempts: 5
+          retry_on: error
+          command: npm test
+
+  build:
+    needs: cancel-previous
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ${{ env.node_version }}
+
+      - name: restore npm cache
+        uses: c-hive/gha-npm-cache@v1
+
+      - name: installing dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package
+        run: npm run package
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v5
+        with:
+          message: "update build"
+          add: "dist/*"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  populate_new_cache:
+    name: populate new cache
+    needs: build
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: ./
+        id: cache
+        with:
+          requirement_files: "__tests__/dummy*.txt"
+          custom_cache_key_element: ${{ github.run_id }}
+
+      - name: assert cache-hit = false
+        uses: nick-invision/assert-action@v1
+        with:
+          expected: false
+          actual: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: assert virtualenv-directory contains .venv
+        uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ steps.cache.outputs.virtualenv-directory }}
+
+      - name: assert env.VIRTUAL_ENV contains .venv
+        uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ env.VIRTUAL_ENV }}
+
+      - name: check if virtualenv-directory exists
+        run: ls ${{ env.VIRTUAL_ENV }}
+
+      - name: install dummy package to be cached
+        run: "pip install python-dateutil"
+
+  use_existing_cache:
+    name: use existing cache
+    needs: populate_new_cache
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: ./
+        id: cache
+        with:
+          requirement_files: "__tests__/dummy*.txt"
+          custom_cache_key_element: ${{ github.run_id }}
+
+      - name: assert cache-hit = true
+        uses: nick-invision/assert-action@v1
+        with:
+          expected: true
+          actual: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: assert virtualenv-directory contains .venv
+        uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ steps.cache.outputs.virtualenv-directory }}
+
+      - name: load installed package list
+        run: "pip freeze > pip_package_list.txt"
+
+      - uses: pCYSl5EDgo/cat@master
+        id: cat
+        with:
+          path: pip_package_list.txt
+
+      - name: assert package is installed
+        uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: python-dateutil
+          actual: ${{ steps.cat.outputs.text}}
+
+  runs_without_custom_key:
+    name: runs without arguments
+    needs: build
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: create dummy requirements file
+        run: echo "tests" > requirements.txt
+      - uses: ./

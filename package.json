@@ -9,7 +9,7 @@
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
+    "package": "ncc build lib/restore.js --out dist/restore --source-map --license licenses.txt && ncc build lib/save.js --out dist/save --source-map --license licenses.txt",
     "test": "jest",
     "all": "npm run build && npm run format && npm run lint && npm run package && npm test"
   },
@@ -25,7 +25,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.6"
+    "@actions/cache": "^1.0.4",
+    "@actions/core": "^1.2.6",
+    "md5-file": "^5.0.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",

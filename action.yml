@@ -1,10 +1,10 @@
 ---
 name: 'restore or create a virtualenv'
-description: '1-liner to restore a cached virtualenv, or create a new one. '
+description: '1-liner to restore and activate a cached virtualenv, or create a new one.'
 author: 'syphar'
 runs:
   using: 'node12'
-  main: 'dist/restore/index.js'
+   main: 'dist/restore/index.js'
   post: 'dist/save/index.js'
 
 inputs:
@@ -26,4 +26,4 @@ outputs:
   cache-hit:
     description: "A boolean value to indicate if a cache was restored"
   virtualenv-directory:
-    description: "the path to the pip cache directory"
+    description: "the path to the restored or created virtualenv"

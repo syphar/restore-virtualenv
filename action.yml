@@ -1,11 +1,29 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+---
+name: 'restore or create a virtualenv'
+description: '1-liner to restore a cached virtualenv, or create a new one. '
+author: 'syphar'
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: 'dist/restore/index.js'
+  post: 'dist/save/index.js'
+
+inputs:
+  custom_cache_key_element:
+    required: false
+    description: "custom element that will be used when constructing the cache key"
+    default: "v1"
+
+  requirement_files:
+    required: false
+    description: "requirements-files to use for building the cache key"
+    default: |
+        **/requirements*.txt
+        **/requirements/*.txt
+        **/Pipfile.lock
+        **/poetry.lock
+
+outputs:
+  cache-hit:
+    description: "A boolean value to indicate if a cache was restored"
+  virtualenv-directory:
+    description: "the path to the pip cache directory"

@@ -119,8 +119,6 @@ jobs:
           expected: false
           actual: ${{ steps.cache.outputs.cache-hit }}
 
-      - run: ls ${{ env.VIRTUAL_ENV }}
-
       - name: assert virtualenv-directory contains .venv
         uses: nick-invision/assert-action@v1
         with:
@@ -179,8 +177,6 @@ jobs:
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
-      - run: ls ${{ env.VIRTUAL_ENV }}
-
       - name: load installed package list
         run: "pip freeze > pip_package_list.txt"
 
@@ -189,7 +185,8 @@ jobs:
         with:
           path: pip_package_list.txt
 
-      - uses: nick-invision/assert-action@v1
+      - name: assert package is installed
+        uses: nick-invision/assert-action@v1
         with:
           comparison: contains
           expected: python-dateutil

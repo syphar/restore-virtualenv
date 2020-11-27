@@ -71,6 +71,14 @@ jobs:
       - name: installing dependencies
         run: npm ci
 
+      - name: sanity check, no changes should be in local repo
+        run: |
+          if [ ! -z "$(git status --porcelain)" ]; then
+            # If we get a fail here then this workflow needs attention...
+            >&2 echo "build/package did change files. Did you forget to run the build locally?"
+            exit 1
+          fi
+
       - name: Build
         run: npm run build
 

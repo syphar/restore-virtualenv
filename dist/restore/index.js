@@ -165,7 +165,7 @@ function virtualenv_directory() {
 }
 exports.virtualenv_directory = virtualenv_directory;
 function logWarning(message) {
-    const warningPrefix = '[warning]';
+    const warningPrefix = '[warning] ';
     core.info(`${warningPrefix}${message}`);
 }
 exports.logWarning = logWarning;

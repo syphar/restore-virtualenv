@@ -17,7 +17,7 @@ async function run(): Promise<void> {
     core.saveState('VIRTUALENV_DIRECTORY', virtualenv_dir)
     core.setOutput('virtualenv-directory', virtualenv_dir)
 
-    const cache_key: string = await utils.cache_key(
+    const cache_key = await utils.cache_key(
       requirement_files,
       custom_cache_key
     )

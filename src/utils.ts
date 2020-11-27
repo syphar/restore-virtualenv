@@ -46,7 +46,7 @@ export async function virtualenv_directory(): Promise<string> {
 }
 
 export function logWarning(message: string): void {
-  const warningPrefix = '[warning]'
+  const warningPrefix = '[warning] '
   core.info(`${warningPrefix}${message}`)
 }
 

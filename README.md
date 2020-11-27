@@ -6,31 +6,30 @@
 </p>
 
 GitHub Action caches improve build times and reduce network dependencies. However, when creating github actions for
-python I find myself repeating some patterns. On of them is restoring the pip download cache, which is
-why this action was created.
+python I find myself repeating some patterns. One of them is loading a cached virtualenv for a python app. In the end, most of the pull requests don't change requirements.
 
-On top, writing the correct cache logic is [tricky](https://github.com/actions/cache/blob/0781355a23dac32fd3bac414512f4b903437991a/examples.md#python---pip). You need to understand how the [cache action](https://github.com/actions/cache) (keys and restore keys) work. Did you know the default cache will not save the cache if restoring had an exact match? Or that the current cache on github side is insert-only and never updates a cache key?  Also, the default cache action will not store the updated cache
+On top, writing the correct cache logic is [tricky](https://github.com/actions/cache/blob/0781355a23dac32fd3bac414512f4b903437991a/examples.md#python---pip). You need to understand how the [cache action](https://github.com/actions/cache) (keys and restore keys) work. Did you know the default cache will not save the cache if restoring had an exact match? Or that the current cache on github side is insert-only and never updates a cache key?
 when there was a test-failure.
 
-`restore-pip-download-cache` is a simple 1-liner that covers all use-cases, correctly:
-- Caches the pip download cache directory
+`restore-virtualenv` is a simple 1-liner that
+- gives you either an new virtualenv, or restores an old one based on the requirements-file.
 - Works on Ubuntu, MacOS and Windows
-- Restore keys take the OS into account
+- sets `$VIRTUAL_ENV` and `$PATH` environment for the virtualenv.
+- Restore keys take the OS into account, and the major and minor python version. for patch-updates the virtualenv can be reused.
 - will use any typical requirements file to build the cache key (poetry, pipenv, pip-requirements-txt)
-- cache will also be updated when the build failed, assuming the download cache never breaks.
 - Builds on the [native cache functionality of GitHub Actions](https://github.com/actions/toolkit/tree/master/packages/cache), same as [v2 of the generic cache action](https://github.com/actions/cache/issues/55#issuecomment-629433225)
 
 ## Usage
 
-Add this step before any `pip install`:
+Add this step before any `pip install` and after your `actions/setup-python` step:
 ```yml
-- uses: syphar/restore-pip-download-cache@v1
+- uses: syphar/restore-virtualenv@v1
 ```
 
 For example:
 
 `.github/workflows/ci.yml`
-```yml
+```yaml
 name: CI
 
 on: [push]
@@ -41,26 +40,89 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: syphar/restore-pip-download-cache@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+    - uses: syphar/restore-virtualenv@v1
+      id: cache-virtualenv
+
+    - uses: syphar/restore-pip-download-cache@v1
+      if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+      # the package installation will only be executed when the
+      # requirements-files have changed.
+    - run: pip install -r requirements.txt
+      if: steps.cache-virtualenv.outputs.cache-hit != 'true'
 
     - name: Test
       run: py.test
+```
+
+This action can also be used if you have multiple jobs running in parallel that should use the same virtualenv.
+
+`.github/workflows/ci.yml`
+```yaml
+name: CI
+
+on: [push]
+
+jobs:
+  create-virtualenv:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - uses: syphar/restore-virtualenv@v1
+      id: cache-virtualenv
+
+    - run: pip install -r requirements.txt
+      if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+  linter:
+    needs: create-virtualenv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - uses: syphar/restore-virtualenv@v1
+      id: cache-virtualenv
+
+    - run: flake8
+    - run: pydocstyle
+    - run: isort . --diff --check-only
+    - run: black --check --diff .
+
+  tests:
+    needs: create-virtualenv
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - uses: syphar/restore-virtualenv@v1
+      id: cache-virtualenv
+
+    - run: py.test
 ```
 
 ## inputs
 
 ### `requirement_files`
 
-When the default does not suffice you can provide a [glob pattern](https://github.com/actions/toolkit/tree/1cc56db0ff126f4d65aeb83798852e02a2c180c3/packages/glob) for the files that, when changed, likely change the pip download cache.
+When the default does not suffice you can provide a [glob pattern](https://github.com/actions/toolkit/tree/1cc56db0ff126f4d65aeb83798852e02a2c180c3/packages/glob) for the files that, when changed, change the virtualenv.
 
 Most of the time that is the requirements-files.
 
 Default for this input is:
 ```
-requirements*.txt
 **/requirements*.txt
 **/requirements/*.txt
 **/Pipfile.lock

@@ -43,7 +43,7 @@ export async function virtualenv_directory(): Promise<string> {
   if (process.platform === 'win32') {
     home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`
   } else {
-    home = process.env['HOME'] || "~"
+    home = process.env['HOME'] || '~'
   }
 
   const virtualenv_base = `${home}${path.sep}.virtualenvs`

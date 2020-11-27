@@ -48,7 +48,6 @@ async function run(): Promise<void> {
     } else {
       core.addPath(`${virtualenv_dir}${path.sep}bin`)
     }
-
   } catch (error) {
     core.setFailed(error.message)
   }

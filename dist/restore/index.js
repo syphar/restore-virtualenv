@@ -159,7 +159,7 @@ exports.cache_key = cache_key;
 function virtualenv_directory() {
     return __awaiter(this, void 0, void 0, function* () {
         let home = '';
-        if (process.platform == 'win32') {
+        if (process.platform === 'win32') {
             home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`;
         }
         else {

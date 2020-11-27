@@ -100,15 +100,12 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - run: env
       - uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-
-      - run: env
 
       - uses: ./
         id: cache

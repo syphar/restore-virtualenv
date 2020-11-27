@@ -173,17 +173,18 @@ jobs:
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
       - name: load installed package list
-        id: pip-freeze
-        run: "echo ::set-output name=list::$(pip freeze)"
+        run: "pip freeze > pip_package_list.txt"
 
-      # - name: check if test package exists
-      #   run: "pip freeze | grep python-dateutil"
+      - uses: pCYSl5EDgo/cat@master
+        id: cat
+        with:
+          path: pip_package_list.txt
 
       - uses: nick-invision/assert-action@v1
         with:
           comparison: contains
           expected: python-dateutil
-          actual: ${{ steps.pip-freeze.outputs.list }}
+          actual: ${{ steps.cat.outputs.text}}
 
   runs_without_custom_key:
     name: runs without arguments

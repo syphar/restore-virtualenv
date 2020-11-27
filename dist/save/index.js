@@ -151,7 +151,14 @@ function cache_key(requirement_files, custom_cache_key) {
 exports.cache_key = cache_key;
 function virtualenv_directory() {
     return __awaiter(this, void 0, void 0, function* () {
-        const virtualenv_base = `~${path.sep}.virtualenvs`;
+        let home = '';
+        if (process.platform == 'win32') {
+            home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`;
+        }
+        else {
+            home = process.env['HOME'] || "~";
+        }
+        const virtualenv_base = `${home}${path.sep}.virtualenvs`;
         yield io.mkdirP(virtualenv_base);
         return `${virtualenv_base}${path.sep}.venv`;
     });

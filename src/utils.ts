@@ -39,10 +39,11 @@ export async function cache_key(
 }
 
 export async function virtualenv_directory(): Promise<string> {
+  let home = ''
   if (process.platform == 'win32') {
-    const home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`
+    home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`
   } else {
-    const home = process.env['HOME']
+    home = process.env['HOME'] || "~"
   }
 
   const virtualenv_base = `${home}${path.sep}.virtualenvs`

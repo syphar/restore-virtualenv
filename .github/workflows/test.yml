@@ -46,17 +46,23 @@ jobs:
       - name: installing dependencies
         run: npm ci
 
+      - name: check format
+        run: npm run format-check
+
+      - name: run lint
+        run: npm run lint
+
       - name: run tests
         uses: nick-invision/retry@v2
         with:
-          timeout_minutes: 999
-          max_attempts: 3
+          timeout_minutes: 2
+          max_attempts: 5
           retry_on: error
-          command: npm run all
+          command: npm test
 
-  test_build:
+  build:
     needs: cancel-previous
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -77,19 +83,17 @@ jobs:
       - name: Package
         run: npm run package
 
-      - run: git diff
-
-      - name: fail if build wasn't commited
-        run: |
-          if [ ! -z "$(git status --porcelain)" ]; then
-            # If we get a fail here then this workflow needs attention...
-            >&2 echo "build/package did change files. Did you forget to run the build locally?"
-            exit 1
-          fi
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v5
+        with:
+          message: "update build"
+          add: "dist/*"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   populate_new_cache:
     name: populate new cache
-    needs: test_build
+    needs: build
 
     strategy:
       matrix:
@@ -193,7 +197,7 @@ jobs:
 
   runs_without_custom_key:
     name: runs without arguments
-    needs: test_build
+    needs: build
 
     strategy:
       matrix:

@@ -1,6 +1,6 @@
 # restore-virtualenv
 
-#### 1-liner to create or restore a python virtuaelnv
+#### 1-liner to create or restore a python virtualenv
 <p align="center">
   <a href="https://github.com/syphar/restore-virtualenv"><img alt="restore-virtualenv status" src="https://github.com/syphar/restore-virtualenv/workflows/CI/badge.svg"></a>
 </p>
@@ -42,8 +42,6 @@ jobs:
     - uses: actions/checkout@v1
 
     - uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
 
     - uses: syphar/restore-virtualenv@v1
       id: cache-virtualenv
@@ -75,11 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-
     - uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-
     - uses: syphar/restore-virtualenv@v1
       id: cache-virtualenv
 
@@ -95,8 +89,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
     - uses: syphar/restore-virtualenv@v1
       id: cache-virtualenv
 
@@ -111,8 +103,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
     - uses: syphar/restore-virtualenv@v1
       id: cache-virtualenv
 

@@ -107,24 +107,29 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - run: env
+
       - uses: ./
         id: cache
         with:
           requirement_files: "__tests__/dummy*.txt"
           custom_cache_key_element: ${{ github.run_id }}
 
-      - uses: nick-invision/assert-action@v1
+      - name: assert cache-hit = false
+        uses: nick-invision/assert-action@v1
         with:
           expected: false
           actual: ${{ steps.cache.outputs.cache-hit }}
 
-      - uses: nick-invision/assert-action@v1
+      - name: assert virtualenv-directory contains .venv
+        uses: nick-invision/assert-action@v1
         with:
           comparison: contains
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
-      - uses: nick-invision/assert-action@v1
+      - name: assert env.VIRTUAL_ENV contains .venv
+        uses: nick-invision/assert-action@v1
         with:
           comparison: contains
           expected: .venv
@@ -161,12 +166,14 @@ jobs:
           requirement_files: "__tests__/dummy*.txt"
           custom_cache_key_element: ${{ github.run_id }}
 
-      - uses: nick-invision/assert-action@v1
+      - name: assert cache-hit = true
+        uses: nick-invision/assert-action@v1
         with:
           expected: true
           actual: ${{ steps.cache.outputs.cache-hit }}
 
-      - uses: nick-invision/assert-action@v1
+      - name: assert virtualenv-directory contains .venv
+        uses: nick-invision/assert-action@v1
         with:
           comparison: contains
           expected: .venv

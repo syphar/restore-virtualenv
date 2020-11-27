@@ -77,6 +77,8 @@ jobs:
       - name: Package
         run: npm run package
 
+      - run: git diff
+
       - name: fail if build wasn't commited
         run: |
           if [ ! -z "$(git status --porcelain)" ]; then

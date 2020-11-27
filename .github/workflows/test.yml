@@ -120,6 +120,10 @@ jobs:
           actual: ${{ steps.cache.outputs.cache-hit }}
 
       - run: find ${{ env.VIRTUAL_ENV }}
+        if: matrix.os != 'windows-latest'
+
+      - run: dir /s ${{ env.VIRTUAL_ENV }}
+        if: matrix.os == 'windows-latest'
 
       - name: assert virtualenv-directory contains .venv
         uses: nick-invision/assert-action@v1
@@ -180,7 +184,10 @@ jobs:
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
       - run: find ${{ env.VIRTUAL_ENV }}
-      - run: pip freeze
+        if: matrix.os != 'windows-latest'
+
+      - run: dir /s ${{ env.VIRTUAL_ENV }}
+        if: matrix.os == 'windows-latest'
 
       - name: load installed package list
         run: "pip freeze > pip_package_list.txt"

@@ -1,14 +1,30 @@
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
+import * as exec from '@actions/exec'
+import * as io from '@actions/io'
 import * as crypto from 'crypto'
 import * as fs from 'fs'
 import * as md5File from 'md5-file'
 import * as path from 'path'
 
 export async function python_version(): Promise<string> {
-  // >> print("{}{}".format(*sys.version_info[:2]))
-  // 3.9
-  return '39'
+  let output = ''
+
+  const options: exec.ExecOptions = {
+    listeners: {
+      stdout: (data: Buffer) => {
+        output += data.toString()
+      }
+    }
+  }
+
+  await exec.exec(
+    'python',
+    ['-c', 'import sys;print("{}{}".format(*sys.version_info[:2]))'],
+    options
+  )
+
+  return output.trim()
 }
 
 export async function cache_key(
@@ -22,23 +38,11 @@ export async function cache_key(
   return `${base}-${hash}`
 }
 
-export function virtualenv_directory(): string {
-  const cache_dir = process.env['XDG_CACHE_HOME']
+export async function virtualenv_directory(): Promise<string> {
+  const virtualenv_base = `${process.env['HOME']}${path.sep}.virtualenvs`
+  await io.mkdirP(virtualenv_base)
 
-  return `${cache_dir}/.venv/`
-  // switch (process.platform) {
-  //   case 'linux':
-  //     return '~/.cache/pip'
-  //   case 'win32':
-  //     return '~\\AppData\\Local\\pip\\Cache'
-  //   case 'darwin':
-  //     return '~/Library/Caches/pip'
-  //   default:
-  //     core.setFailed(
-  //       `could not find pip cache directory for platform ${process.platform}`
-  //     )
-  //     return ''
-  // }
+  return `${virtualenv_base}${path.sep}.venv`
 }
 
 export function logWarning(message: string): void {

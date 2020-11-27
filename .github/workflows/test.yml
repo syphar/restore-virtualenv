@@ -12,48 +12,48 @@ env:
 
 jobs:
   dummy:
+  cancel-previous:
     runs-on: ubuntu-latest
     steps:
-      - run: "ls -ahl ~"
-      - run: "echo $XDG_CACHE_HOME"
-      - run: "ls -ahl $XDG_CACHE_HOME"
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
 
-#   cancel-previous:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: cancel previous runs
-#         uses: styfle/cancel-workflow-action@0.6.0
-#         with:
-#           access_token: ${{ github.token }}
+  unittests:
+    needs: cancel-previous
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
-#   unittests:
-#     needs: cancel-previous
-#     strategy:
-#       matrix:
-#         os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
 
-#     runs-on: ${{ matrix.os }}
-#     steps:
-#       - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v2.1.2
-#         with:
-#           node-version: ${{ env.node_version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ${{ env.node_version }}
 
-#       - name: restore npm cache
-#         uses: c-hive/gha-npm-cache@v1
+      - name: restore npm cache
+        uses: c-hive/gha-npm-cache@v1
 
-#       - name: installing dependencies
-#         run: npm ci
+      - name: installing dependencies
+        run: npm ci
 
-#       - name: run tests
-#         uses: nick-invision/retry@v2
-#         with:
-#           timeout_minutes: 999
-#           max_attempts: 3
-#           retry_on: error
-#           command: npm run all
+      - name: run tests
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 999
+          max_attempts: 3
+          retry_on: error
+          command: npm run all
 
 #   test_build:
 #     needs: cancel-previous

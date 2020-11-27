@@ -7,13 +7,19 @@ const test_requirement_hash =
     : '0d370d5547fa12da0111fbdfbf065f45'
 
 test('get cache key', async () => {
-  expect(await utils.cache_key(test_requirement_files, 'custom')).toBe(
-    `${process.env.RUNNER_OS}-pip-download-cache-custom-${test_requirement_hash}`
+  expect(await utils.cache_key(test_requirement_files, 'custom')).toMatch(
+    new RegExp(
+      `${process.env.RUNNER_OS}-virtualenv-cache-py3\\d-custom-${test_requirement_hash}`
+    )
   )
 })
 
-test('get virtualenv directory', () => {
-  expect(utils.virtualenv_directory()).toContain('pip')
+test('get python version', async () => {
+  expect(await utils.python_version()).toMatch(new RegExp('3\\d'))
+})
+
+test('get virtualenv directory', async () => {
+  expect(await utils.virtualenv_directory()).toContain('.venv')
 })
 
 test('get hash for file glob', async () => {

@@ -124,6 +124,15 @@ jobs:
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
+      - uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ env.VIRTUAL_ENV }}
+
+      - name: check if virtualenv-directory exists
+        run: ls ${{ env.VIRTUAL_ENV }}
+
       - name: install dummy package to be cached
         run: "pip install python-dateutil"
 

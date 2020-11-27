@@ -119,6 +119,8 @@ jobs:
           expected: false
           actual: ${{ steps.cache.outputs.cache-hit }}
 
+      - run: find ${{ env.VIRTUAL_ENV }}
+
       - name: assert virtualenv-directory contains .venv
         uses: nick-invision/assert-action@v1
         with:
@@ -177,6 +179,7 @@ jobs:
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
+      - run: find ${{ env.VIRTUAL_ENV }}
       - run: pip freeze
 
       - name: load installed package list

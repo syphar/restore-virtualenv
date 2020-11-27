@@ -5,34 +5,40 @@ import * as fs from 'fs'
 import * as md5File from 'md5-file'
 import * as path from 'path'
 
-export function restore_key(custom_cache_key: string): string {
-  return `${process.env['RUNNER_OS']}-pip-download-cache-${custom_cache_key}`
+export async function python_version(): Promise<string> {
+  // >> print("{}{}".format(*sys.version_info[:2]))
+  // 3.9
+  return '39'
 }
 
 export async function cache_key(
   requirement_files: string,
   custom_cache_key: string
 ): Promise<string> {
-  const base = restore_key(custom_cache_key)
+  const py_version = await python_version()
+  const base = `${process.env['RUNNER_OS']}-virtualenv-cache-py${py_version}-${custom_cache_key}`
   const hash = await hashFiles(requirement_files)
 
-  return Promise.resolve(`${base}-${hash}`)
+  return `${base}-${hash}`
 }
 
-export function pip_cache_directory(): string {
-  switch (process.platform) {
-    case 'linux':
-      return '~/.cache/pip'
-    case 'win32':
-      return '~\\AppData\\Local\\pip\\Cache'
-    case 'darwin':
-      return '~/Library/Caches/pip'
-    default:
-      core.setFailed(
-        `could not find pip cache directory for platform ${process.platform}`
-      )
-      return ''
-  }
+export function virtualenv_directory(): string {
+  const cache_dir = process.env['XDG_CACHE_HOME']
+
+  return `${cache_dir}/.venv/`
+  // switch (process.platform) {
+  //   case 'linux':
+  //     return '~/.cache/pip'
+  //   case 'win32':
+  //     return '~\\AppData\\Local\\pip\\Cache'
+  //   case 'darwin':
+  //     return '~/Library/Caches/pip'
+  //   default:
+  //     core.setFailed(
+  //       `could not find pip cache directory for platform ${process.platform}`
+  //     )
+  //     return ''
+  // }
 }
 
 export function logWarning(message: string): void {
@@ -58,7 +64,7 @@ export async function hashFiles(patterns: string): Promise<string> {
 
     core.debug(`hashing file ${file}`)
 
-    const file_hash = md5File.sync(file)
+    const file_hash = await md5File.default(file)
 
     result.write(file_hash)
     if (!hasMatch) {
@@ -67,11 +73,9 @@ export async function hashFiles(patterns: string): Promise<string> {
   }
 
   if (!hasMatch) {
-    return Promise.reject(
-      new Error(`could not find requirement-files with pattern ${patterns}`)
-    )
+    throw new Error(`could not find requirement-files with pattern ${patterns}`)
   }
 
   result.end()
-  return Promise.resolve(result.digest('hex'))
+  return result.digest('hex')
 }

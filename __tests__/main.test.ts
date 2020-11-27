@@ -12,14 +12,8 @@ test('get cache key', async () => {
   )
 })
 
-test('get restore key', () => {
-  expect(utils.restore_key('custom')).toBe(
-    `${process.env.RUNNER_OS}-pip-download-cache-custom`
-  )
-})
-
-test('get cache directory', () => {
-  expect(utils.pip_cache_directory()).toContain('pip')
+test('get virtualenv directory', () => {
+  expect(utils.virtualenv_directory()).toContain('pip')
 })
 
 test('get hash for file glob', async () => {

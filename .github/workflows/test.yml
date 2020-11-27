@@ -177,7 +177,8 @@ jobs:
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
-      - name: pip freeze
+      - run: pip freeze
+
       - name: load installed package list
         run: "pip freeze > pip_package_list.txt"
 

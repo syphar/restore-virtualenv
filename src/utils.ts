@@ -39,7 +39,7 @@ export async function cache_key(
 }
 
 export async function virtualenv_directory(): Promise<string> {
-  const virtualenv_base = `~${path.sep}.virtualenvs`
+  const virtualenv_base = `${process.env['HOME']}${path.sep}.virtualenvs`
   await io.mkdirP(virtualenv_base)
 
   return `${virtualenv_base}${path.sep}.venv`

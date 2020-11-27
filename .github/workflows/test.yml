@@ -100,6 +100,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
+      - run: env
       - uses: actions/checkout@v2
 
       - name: Set up Python

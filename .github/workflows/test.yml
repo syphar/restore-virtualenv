@@ -115,6 +115,12 @@ jobs:
           expected: false
           actual: ${{ steps.cache.outputs.cache-hit }}
 
+      - uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ steps.cache.outputs.virtualenv-dir }}
+
       - name: install dummy package to be cached
         run: "pip install python-dateutil"
 
@@ -147,6 +153,12 @@ jobs:
         with:
           expected: true
           actual: ${{ steps.cache.outputs.cache-hit }}
+
+      - uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ steps.cache.outputs.virtualenv-dir }}
 
       - name: check if test package exists
         run: "pip freeze | grep python-dateutil"

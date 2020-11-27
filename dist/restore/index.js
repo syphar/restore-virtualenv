@@ -70,7 +70,12 @@ function run() {
             }
             // do what venv/bin/activate normally does
             core.exportVariable('VIRTUAL_ENV', virtualenv_dir);
-            core.addPath(`${virtualenv_dir}${path.sep}bin`);
+            if (process.platform === 'win32') {
+                core.addPath(`${virtualenv_dir}${path.sep}Scripts`);
+            }
+            else {
+                core.addPath(`${virtualenv_dir}${path.sep}bin`);
+            }
         }
         catch (error) {
             core.setFailed(error.message);

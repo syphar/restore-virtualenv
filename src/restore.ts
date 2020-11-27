@@ -17,10 +17,7 @@ async function run(): Promise<void> {
     core.saveState('VIRTUALENV_DIRECTORY', virtualenv_dir)
     core.setOutput('virtualenv-directory', virtualenv_dir)
 
-    const cache_key = await utils.cache_key(
-      requirement_files,
-      custom_cache_key
-    )
+    const cache_key = await utils.cache_key(requirement_files, custom_cache_key)
 
     core.saveState('VIRTUALENV_CACHE_KEY', cache_key)
     core.info(`cache key: ${cache_key}`)
@@ -45,7 +42,13 @@ async function run(): Promise<void> {
 
     // do what venv/bin/activate normally does
     core.exportVariable('VIRTUAL_ENV', virtualenv_dir)
-    core.addPath(`${virtualenv_dir}${path.sep}bin`)
+
+    if (process.platform === 'win32') {
+      core.addPath(`${virtualenv_dir}${path.sep}Scripts`)
+    } else {
+      core.addPath(`${virtualenv_dir}${path.sep}bin`)
+    }
+
   } catch (error) {
     core.setFailed(error.message)
   }

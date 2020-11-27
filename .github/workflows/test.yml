@@ -163,8 +163,18 @@ jobs:
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
-      - name: check if test package exists
-        run: "pip freeze | grep python-dateutil"
+      - name: load installed package list
+        id: pip-freeze
+        run: "echo ::set-output name=list::$(pip freeze)"
+
+      # - name: check if test package exists
+      #   run: "pip freeze | grep python-dateutil"
+
+      - uses: nick-invision/assert-action@v1
+        with:
+          comparison: contains
+          expected: python-dateutil
+          actual: ${{ steps.pip-freeze.outputs.list }}
 
   runs_without_custom_key:
     name: runs without arguments
@@ -173,10 +183,16 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        # python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.9]
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: create dummy requirements file
         run: echo "tests" > requirements.txt
       - uses: ./

@@ -156,7 +156,7 @@ function virtualenv_directory() {
             home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`;
         }
         else {
-            home = process.env['HOME'] || "~";
+            home = process.env['HOME'] || '~';
         }
         const virtualenv_base = `${home}${path.sep}.virtualenvs`;
         yield io.mkdirP(virtualenv_base);

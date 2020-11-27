@@ -54,112 +54,114 @@ jobs:
           retry_on: error
           command: npm run all
 
-#   test_build:
-#     needs: cancel-previous
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v2
+  test_build:
+    needs: cancel-previous
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v2.1.2
-#         with:
-#           node-version: ${{ env.node_version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.1.2
+        with:
+          node-version: ${{ env.node_version }}
 
-#       - name: restore npm cache
-#         uses: c-hive/gha-npm-cache@v1
+      - name: restore npm cache
+        uses: c-hive/gha-npm-cache@v1
 
-#       - name: installing dependencies
-#         run: npm ci
+      - name: installing dependencies
+        run: npm ci
 
-#       - name: Build
-#         run: npm run build
+      - name: Build
+        run: npm run build
 
-#       - name: Package
-#         run: npm run package
+      - name: Package
+        run: npm run package
 
-#       - name: fail if build wasn't commited
-#         run: |
-#           if [ ! -z "$(git status --porcelain)" ]; then
-#             # If we get a fail here then this workflow needs attention...
-#             >&2 echo "build/package did change files. Did you forget to run the build locally?"
-#             exit 1
-#           fi
+      - name: fail if build wasn't commited
+        run: |
+          if [ ! -z "$(git status --porcelain)" ]; then
+            # If we get a fail here then this workflow needs attention...
+            >&2 echo "build/package did change files. Did you forget to run the build locally?"
+            exit 1
+          fi
 
-#   # populate_new_cache:
-#   #   name: populate new cache
-#   #   needs: test_build
+  populate_new_cache:
+    name: populate new cache
+    needs: test_build
 
-#   #   strategy:
-#   #     matrix:
-#   #       os: [macos-latest, ubuntu-latest, windows-latest]
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        # python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.9]
 
-#   #   runs-on: ${{ matrix.os }}
-#   #   steps:
-#   #     - uses: actions/checkout@v2
-#   #     - uses: ./
-#   #       id: cache
-#   #       with:
-#   #         requirement_files: "__tests__/dummy*.txt"
-#   #         custom_cache_key_element: ${{ github.run_id }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
 
-#   #     - uses: nick-invision/assert-action@v1
-#   #       with:
-#   #         expected: false
-#   #         actual: ${{ steps.cache.outputs.cache-hit }}
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-#   #     - name: create testfile to be cached (non-windows)
-#   #       if: matrix.os != 'windows-latest'
-#   #       run: |
-#   #         mkdir -p ${{ steps.cache.outputs.pip-cache-directory}}
-#   #         echo "test" > ${{ steps.cache.outputs.pip-cache-directory}}/${{ github.run_id }}.txt
+      - uses: ./
+        id: cache
+        with:
+          requirement_files: "__tests__/dummy*.txt"
+          custom_cache_key_element: ${{ github.run_id }}
 
-#   #     - name: create testfile to be cached (windows)
-#   #       if: matrix.os == 'windows-latest'
-#   #       run: |
-#   #         mkdir -p ${{ steps.cache.outputs.pip-cache-directory}}
-#   #         echo "test" > ${{ steps.cache.outputs.pip-cache-directory}}\${{ github.run_id }}.txt
+      - uses: nick-invision/assert-action@v1
+        with:
+          expected: false
+          actual: ${{ steps.cache.outputs.cache-hit }}
 
-#   # use_existing_cache:
-#   #   name: use existing cache
-#   #   needs: populate_new_cache
+      - name: install dummy package to be cached
+        run: "pip install python-dateutil"
 
-#   #   strategy:
-#   #     matrix:
-#   #       os: [macos-latest, ubuntu-latest, windows-latest]
+  use_existing_cache:
+    name: use existing cache
+    needs: populate_new_cache
 
-#   #   runs-on: ${{ matrix.os }}
-#   #   steps:
-#   #     - uses: actions/checkout@v2
-#   #     - uses: ./
-#   #       id: cache
-#   #       with:
-#   #         requirement_files: "__tests__/dummy*.txt"
-#   #         custom_cache_key_element: ${{ github.run_id }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        # python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.9]
 
-#   #     - uses: nick-invision/assert-action@v1
-#   #       with:
-#   #         expected: true
-#   #         actual: ${{ steps.cache.outputs.cache-hit }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
 
-#   #     - name: check if testfile exists (non-windows)
-#   #       if: matrix.os != 'windows-latest'
-#   #       run: cat ${{ steps.cache.outputs.pip-cache-directory}}/${{ github.run_id }}.txt
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-#   #     - name: check if testfile exists (windows)
-#   #       if: matrix.os == 'windows-latest'
-#   #       run: cat ${{ steps.cache.outputs.pip-cache-directory}}\${{ github.run_id }}.txt
+      - uses: ./
+        id: cache
+        with:
+          requirement_files: "__tests__/dummy*.txt"
+          custom_cache_key_element: ${{ github.run_id }}
 
-# #   runs_without_custom_key:
-# #     name: runs without arguments
-# #     needs: test_build
+      - uses: nick-invision/assert-action@v1
+        with:
+          expected: true
+          actual: ${{ steps.cache.outputs.cache-hit }}
 
-# #     strategy:
-# #       matrix:
-# #         os: [macos-latest, ubuntu-latest, windows-latest]
+      - name: check if test package exists
+        run: "pip freeze | grep python-dateutil"
 
-# #     runs-on: ${{ matrix.os }}
-# #     steps:
-# #       - uses: actions/checkout@v2
-# #       - name: create dummy requirements file
-# #         run: echo "tests" > requirements.txt
-# #       - uses: ./
+  runs_without_custom_key:
+    name: runs without arguments
+    needs: test_build
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: create dummy requirements file
+        run: echo "tests" > requirements.txt
+      - uses: ./

@@ -4,8 +4,9 @@ description: '1-liner to restore and activate a cached virtualenv, or create a n
 author: 'syphar'
 runs:
   using: 'node12'
-   main: 'dist/restore/index.js'
+  main: 'dist/restore/index.js'
   post: 'dist/save/index.js'
+  post-if: 'success()'
 
 inputs:
   custom_cache_key_element:

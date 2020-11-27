@@ -122,7 +122,7 @@ jobs:
         with:
           comparison: contains
           expected: .venv
-          actual: ${{ steps.cache.outputs.virtualenv-dir }}
+          actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
       - name: install dummy package to be cached
         run: "pip install python-dateutil"
@@ -161,7 +161,7 @@ jobs:
         with:
           comparison: contains
           expected: .venv
-          actual: ${{ steps.cache.outputs.virtualenv-dir }}
+          actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
       - name: check if test package exists
         run: "pip freeze | grep python-dateutil"

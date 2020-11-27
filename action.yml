@@ -1,5 +1,5 @@
 ---
-name: 'restore or create a virtualenv'
+name: 'restore or create a python virtualenv'
 description: '1-liner to restore and activate a cached virtualenv, or create a new one.'
 author: 'syphar'
 runs:

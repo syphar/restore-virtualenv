@@ -8,8 +8,9 @@
 GitHub Action caches improve build times and reduce network dependencies. However, when creating github actions for
 python I find myself repeating some patterns. One of them is loading a cached virtualenv for a python app. In the end, most of the pull requests don't change requirements.
 
-On top, writing the correct cache logic is [tricky](https://github.com/actions/cache/blob/0781355a23dac32fd3bac414512f4b903437991a/examples.md#python---pip). You need to understand how the [cache action](https://github.com/actions/cache) (keys and restore keys) work. Did you know the default cache will not save the cache if restoring had an exact match? Or that the current cache on github side is insert-only and never updates a cache key?
-when there was a test-failure.
+The default python tutorials you find mostly use `pip install` directly into the system python installation. This breaks the third-party / standard library detection in `isort`.
+
+Writing the correct cache logic is [tricky](https://github.com/actions/cache/blob/0781355a23dac32fd3bac414512f4b903437991a/examples.md#python---pip). You need to understand how the [cache action](https://github.com/actions/cache) (keys and restore keys) work. Did you know the default cache will not save the cache if restoring had an exact match? Or that the current cache on github side is insert-only and never updates a cache key?
 
 `restore-virtualenv` is a simple 1-liner that
 - gives you either an new virtualenv, or restores an old one based on the requirements-file.
@@ -46,6 +47,8 @@ jobs:
 
     - uses: syphar/restore-virtualenv@v1
       id: cache-virtualenv
+      with:
+        requirement_files: requirements.txt  # this is optional
 
     - uses: syphar/restore-pip-download-cache@v1
       if: steps.cache-virtualenv.outputs.cache-hit != 'true'
@@ -59,7 +62,7 @@ jobs:
       run: py.test
 ```
 
-This action can also be used if you have multiple jobs running in parallel that should use the same virtualenv.
+This action can also be used if you want to have multiple jobs running in parallel that should use the same virtualenv.
 
 `.github/workflows/ci.yml`
 ```yaml
@@ -79,6 +82,9 @@ jobs:
 
     - uses: syphar/restore-virtualenv@v1
       id: cache-virtualenv
+
+    - uses: syphar/restore-pip-download-cache@v1
+      if: steps.cache-virtualenv.outputs.cache-hit != 'true'
 
     - run: pip install -r requirements.txt
       if: steps.cache-virtualenv.outputs.cache-hit != 'true'

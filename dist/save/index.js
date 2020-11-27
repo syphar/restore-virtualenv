@@ -151,7 +151,7 @@ function cache_key(requirement_files, custom_cache_key) {
 exports.cache_key = cache_key;
 function virtualenv_directory() {
     return __awaiter(this, void 0, void 0, function* () {
-        const virtualenv_base = `${process.env['HOME']}${path.sep}.virtualenvs`;
+        const virtualenv_base = `~${path.sep}.virtualenvs`;
         yield io.mkdirP(virtualenv_base);
         return `${virtualenv_base}${path.sep}.venv`;
     });

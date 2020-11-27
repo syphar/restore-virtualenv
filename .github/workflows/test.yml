@@ -60,40 +60,33 @@ jobs:
     needs: cancel-previous
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - run: ls
+      # - uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2.1.2
-        with:
-          node-version: ${{ env.node_version }}
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v2.1.2
+      #   with:
+      #     node-version: ${{ env.node_version }}
 
-      - name: restore npm cache
-        uses: c-hive/gha-npm-cache@v1
+      # - name: restore npm cache
+      #   uses: c-hive/gha-npm-cache@v1
 
-      - name: installing dependencies
-        run: npm ci
+      # - name: installing dependencies
+      #   run: npm ci
 
-      - name: sanity check, no changes should be in local repo
-        run: |
-          if [ ! -z "$(git status --porcelain)" ]; then
-            # If we get a fail here then this workflow needs attention...
-            >&2 echo "build/package did change files. Did you forget to run the build locally?"
-            exit 1
-          fi
+      # - name: Build
+      #   run: npm run build
 
-      - name: Build
-        run: npm run build
+      # - name: Package
+      #   run: npm run package
 
-      - name: Package
-        run: npm run package
-
-      - name: fail if build wasn't commited
-        run: |
-          if [ ! -z "$(git status --porcelain)" ]; then
-            # If we get a fail here then this workflow needs attention...
-            >&2 echo "build/package did change files. Did you forget to run the build locally?"
-            exit 1
-          fi
+      # - name: fail if build wasn't commited
+      #   run: |
+      #     if [ ! -z "$(git status --porcelain)" ]; then
+      #       # If we get a fail here then this workflow needs attention...
+      #       >&2 echo "build/package did change files. Did you forget to run the build locally?"
+      #       exit 1
+      #     fi
 
   populate_new_cache:
     name: populate new cache

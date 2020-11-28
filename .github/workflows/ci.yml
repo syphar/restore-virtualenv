@@ -8,6 +8,7 @@ on:
 
 env:
   node_version: "12.x"
+  custom_cache_key_element: "${{ github.sha }}-${{ github.run_id }}"
 
 jobs:
   cancel-previous:
@@ -133,7 +134,7 @@ jobs:
         id: cache
         with:
           requirement_files: "__tests__/dummy*.txt"
-          custom_cache_key_element: ${{ github.run_id }}
+          custom_cache_key_element: ${{ env.custom_cache_key_element }}
 
       - name: assert cache-hit = false
         uses: nick-invision/assert-action@v1
@@ -183,7 +184,7 @@ jobs:
         id: cache
         with:
           requirement_files: "__tests__/dummy*.txt"
-          custom_cache_key_element: ${{ github.run_id }}
+          custom_cache_key_element: ${{ env.custom_cache_key_element }}
 
       - name: assert cache-hit = true
         uses: nick-invision/assert-action@v1

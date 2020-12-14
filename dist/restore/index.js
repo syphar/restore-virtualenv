@@ -684,7 +684,9 @@ function resolvePaths(patterns) {
         try {
             for (var _c = __asyncValues(globber.globGenerator()), _d; _d = yield _c.next(), !_d.done;) {
                 const file = _d.value;
-                const relativeFile = path.relative(workspace, file);
+                const relativeFile = path
+                    .relative(workspace, file)
+                    .replace(new RegExp(`\\${path.sep}`, 'g'), '/');
                 core.debug(`Matched: ${relativeFile}`);
                 // Paths are made relative so the tar entries are all relative to the root of the workspace.
                 paths.push(`${relativeFile}`);
@@ -4957,6 +4959,7 @@ var node_fetch = _interopDefault(__webpack_require__(467));
 var abortController = __webpack_require__(2557);
 var FormData = _interopDefault(__webpack_require__(6279));
 var util = __webpack_require__(1669);
+var url = __webpack_require__(8835);
 var stream = __webpack_require__(2413);
 var tunnel = __webpack_require__(4294);
 var coreAuth = __webpack_require__(9645);
@@ -5140,7 +5143,7 @@ var Constants = {
      * @const
      * @type {string}
      */
-    coreHttpVersion: "1.2.0",
+    coreHttpVersion: "1.2.1",
     /**
      * Specifies HTTP.
      *
@@ -5233,6 +5236,17 @@ var Constants = {
         USER_AGENT: "User-Agent"
     }
 };
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+/**
+ * Default key used to access the XML attributes.
+ */
+var XML_ATTRKEY = "$";
+/**
+ * Default key used to access the XML value content.
+ */
+var XML_CHARKEY = "_";
 
 // Copyright (c) Microsoft Corporation.
 var validUuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i;
@@ -5381,7 +5395,9 @@ function prepareXMLRootList(obj, elementName, xmlNamespaceKey, xmlNamespace) {
     if (!xmlNamespaceKey || !xmlNamespace) {
         return _a = {}, _a[elementName] = obj, _a;
     }
-    return _b = {}, _b[elementName] = obj, _b.$ = (_c = {}, _c[xmlNamespaceKey] = xmlNamespace, _c), _b;
+    var result = (_b = {}, _b[elementName] = obj, _b);
+    result[XML_ATTRKEY] = (_c = {}, _c[xmlNamespaceKey] = xmlNamespace, _c);
+    return result;
 }
 /**
  * Applies the properties on the prototype of sourceCtors to the prototype of targetCtor
@@ -5432,17 +5448,6 @@ function getEnvironmentValue(name) {
     }
     return undefined;
 }
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-/**
- * Default key used to access the XML attributes.
- */
-var XML_ATTRKEY = "$";
-/**
- * Default key used to access the XML value content.
- */
-var XML_CHARKEY = "_";
 
 // Copyright (c) Microsoft Corporation.
 var Serializer = /** @class */ (function () {
@@ -5916,7 +5921,9 @@ function serializeDictionaryType(serializer, mapper, object, objectName, isXml, 
     // Add the namespace to the root element if needed
     if (isXml && mapper.xmlNamespace) {
         var xmlnsKey = mapper.xmlNamespacePrefix ? "xmlns:" + mapper.xmlNamespacePrefix : "xmlns";
-        return tslib.__assign(tslib.__assign({}, tempDictionary), { $: (_a = {}, _a[xmlnsKey] = mapper.xmlNamespace, _a) });
+        var result = tempDictionary;
+        result[XML_ATTRKEY] = (_a = {}, _a[xmlnsKey] = mapper.xmlNamespace, _a);
+        return result;
     }
     return tempDictionary;
 }
@@ -6543,7 +6550,7 @@ var WebResource = /** @class */ (function () {
         if (!this.headers.get("Content-Type")) {
             this.headers.set("Content-Type", "application/json; charset=utf-8");
         }
-        // set the request body. request.js automatically sets the Content-Length request header, so we need not set it explicilty
+        // set the request body. request.js automatically sets the Content-Length request header, so we need not set it explicitly
         this.body = options.body;
         if (options.body !== undefined && options.body !== null) {
             // body as a stream special case. set the body as-is and check for some special request headers specific to sending a stream.
@@ -7402,8 +7409,9 @@ var FetchHttpClient = /** @class */ (function () {
                                 if (typeof value === "function") {
                                     value = value();
                                 }
-                                // eslint-disable-next-line no-prototype-builtins
-                                if (value && value.hasOwnProperty("value") && value.hasOwnProperty("options")) {
+                                if (value &&
+                                    Object.prototype.hasOwnProperty.call(value, "value") &&
+                                    Object.prototype.hasOwnProperty.call(value, "options")) {
                                     requestForm_1.append(key, value.value, value.options);
                                 }
                                 else {
@@ -8823,6 +8831,12 @@ var AccessTokenRefresher = /** @class */ (function () {
 
 // Copyright (c) Microsoft Corporation.
 /**
+ * The automated token refresh will only start to happen at the
+ * expiration date minus the value of timeBetweenRefreshAttemptsInMs,
+ * which is by default 30 seconds.
+ */
+var timeBetweenRefreshAttemptsInMs = 30000;
+/**
  * Creates a new BearerTokenAuthenticationPolicy factory.
  *
  * @param credential The TokenCredential implementation that can supply the bearer token.
@@ -8837,12 +8851,6 @@ function bearerTokenAuthenticationPolicy(credential, scopes) {
         }
     };
 }
-/**
- * The automated token refresh will only start to happen at the
- * expiration date minus the value of timeBetweenRefreshAttemptsInMs,
- * which is by default 30 seconds.
- */
-var timeBetweenRefreshAttemptsInMs = 30000;
 /**
  *
  * Provides a RequestPolicy that can request a token from a TokenCredential
@@ -9502,10 +9510,15 @@ var ServiceClient = /** @class */ (function () {
                     var bearerTokenPolicyFactory = undefined;
                     // eslint-disable-next-line @typescript-eslint/no-this-alias
                     var serviceClient = _this;
+                    var serviceClientOptions = options;
                     return {
                         create: function (nextPolicy, options) {
+                            var credentialScopes = getCredentialScopes(serviceClientOptions, serviceClient.baseUri);
+                            if (!credentialScopes) {
+                                throw new Error("When using credential, the ServiceClient must contain a baseUri or a credentialScopes in ServiceClientOptions. Unable to create a bearerTokenAuthenticationPolicy");
+                            }
                             if (bearerTokenPolicyFactory === undefined || bearerTokenPolicyFactory === null) {
-                                bearerTokenPolicyFactory = bearerTokenAuthenticationPolicy(credentials, (serviceClient.baseUri || "") + "/.default");
+                                bearerTokenPolicyFactory = bearerTokenAuthenticationPolicy(credentials, credentialScopes);
                             }
                             return bearerTokenPolicyFactory.create(nextPolicy, options);
                         }
@@ -10031,6 +10044,46 @@ function flattenResponse(_response, responseSpec) {
     }
     return addOperationResponse(tslib.__assign(tslib.__assign({}, parsedHeaders), _response.parsedBody));
 }
+function getCredentialScopes(options, baseUri) {
+    if (options === null || options === void 0 ? void 0 : options.credentialScopes) {
+        var scopes = options.credentialScopes;
+        return Array.isArray(scopes)
+            ? scopes.map(function (scope) { return new url.URL(scope).toString(); })
+            : new url.URL(scopes).toString();
+    }
+    if (baseUri) {
+        return baseUri + "/.default";
+    }
+    return undefined;
+}
+
+// Copyright (c) Microsoft Corporation.
+/**
+ * Creates a function called createSpan to create spans using the global tracer.
+ * @ignore
+ * @param spanConfig The name of the operation being performed.
+ * @param tracingOptions The options for the underlying http request.
+ */
+function createSpanFunction(_a) {
+    var packagePrefix = _a.packagePrefix, namespace = _a.namespace;
+    return function (operationName, operationOptions) {
+        var tracer = coreTracing.getTracer();
+        var tracingOptions = operationOptions.tracingOptions || {};
+        var spanOptions = tslib.__assign(tslib.__assign({}, tracingOptions.spanOptions), { kind: api.SpanKind.INTERNAL });
+        var span = tracer.startSpan(packagePrefix + "." + operationName, spanOptions);
+        span.setAttribute("az.namespace", namespace);
+        var newSpanOptions = tracingOptions.spanOptions || {};
+        if (span.isRecording()) {
+            newSpanOptions = tslib.__assign(tslib.__assign({}, tracingOptions.spanOptions), { parent: span.context(), attributes: tslib.__assign(tslib.__assign({}, spanOptions.attributes), { "az.namespace": namespace }) });
+        }
+        var newTracingOptions = tslib.__assign(tslib.__assign({}, tracingOptions), { spanOptions: newSpanOptions });
+        var newOperationOptions = tslib.__assign(tslib.__assign({}, operationOptions), { tracingOptions: newTracingOptions });
+        return {
+            span: span,
+            updatedOptions: newOperationOptions
+        };
+    };
+}
 
 // Copyright (c) Microsoft Corporation.
 var HeaderConstants = Constants.HeaderConstants;
@@ -10180,6 +10233,7 @@ exports.XML_CHARKEY = XML_CHARKEY;
 exports.applyMixins = applyMixins;
 exports.bearerTokenAuthenticationPolicy = bearerTokenAuthenticationPolicy;
 exports.createPipelineFromOptions = createPipelineFromOptions;
+exports.createSpanFunction = createSpanFunction;
 exports.delay = delay;
 exports.deserializationPolicy = deserializationPolicy;
 exports.deserializeResponseBody = deserializeResponseBody;
@@ -40031,7 +40085,7 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContextAPI = void 0;
-var context_base_1 = __webpack_require__(5664);
+var context_base_1 = __webpack_require__(9852);
 var global_utils_1 = __webpack_require__(3529);
 var NOOP_CONTEXT_MANAGER = new context_base_1.NoopContextManager();
 /**
@@ -40687,7 +40741,7 @@ __exportStar(__webpack_require__(6905), exports);
 __exportStar(__webpack_require__(8384), exports);
 __exportStar(__webpack_require__(891), exports);
 __exportStar(__webpack_require__(3168), exports);
-var context_base_1 = __webpack_require__(5664);
+var context_base_1 = __webpack_require__(9852);
 Object.defineProperty(exports, "Context", ({ enumerable: true, get: function () { return context_base_1.Context; } }));
 var context_1 = __webpack_require__(7171);
 /** Entrypoint for context API */
@@ -41990,7 +42044,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ }),
 
-/***/ 2331:
+/***/ 6367:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -42012,7 +42066,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NoopContextManager = void 0;
-var context_1 = __webpack_require__(2678);
+var context_1 = __webpack_require__(2696);
 var NoopContextManager = /** @class */ (function () {
     function NoopContextManager() {
     }
@@ -42038,7 +42092,7 @@ exports.NoopContextManager = NoopContextManager;
 
 /***/ }),
 
-/***/ 2678:
+/***/ 2696:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -42120,7 +42174,7 @@ exports.Context = Context;
 
 /***/ }),
 
-/***/ 5664:
+/***/ 9852:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -42151,14 +42205,14 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(5683), exports);
-__exportStar(__webpack_require__(2678), exports);
-__exportStar(__webpack_require__(2331), exports);
+__exportStar(__webpack_require__(2453), exports);
+__exportStar(__webpack_require__(2696), exports);
+__exportStar(__webpack_require__(6367), exports);
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 5683:
+/***/ 2453:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";

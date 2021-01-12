@@ -9,13 +9,13 @@ const test_requirement_hash =
 test('get cache key', async () => {
   expect(await utils.cache_key(test_requirement_files, 'custom')).toMatch(
     new RegExp(
-      `${process.env.RUNNER_OS}-virtualenv-cache-py3\\d\\d-custom-${test_requirement_hash}`
+      `${process.env.RUNNER_OS}-virtualenv-cache-py3\\d+-custom-${test_requirement_hash}`
     )
   )
 })
 
 test('get python version', async () => {
-  expect(await utils.python_version()).toMatch(new RegExp('3\\d\\d'))
+  expect(await utils.python_version()).toMatch(new RegExp('3\\d+'))
 })
 
 test('get virtualenv directory', async () => {

@@ -20,7 +20,7 @@ export async function python_version(): Promise<string> {
 
   await exec.exec(
     'python',
-    ['-c', 'import sys;print("{}{}".format(*sys.version_info[:2]))'],
+    ['-c', 'import sys;print("{}{}{}".format(*sys.version_info[:3]))'],
     options
   )
 

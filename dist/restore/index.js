@@ -147,7 +147,7 @@ function python_version() {
                 }
             }
         };
-        yield exec.exec('python', ['-c', 'import sys;print("{}{}".format(*sys.version_info[:2]))'], options);
+        yield exec.exec('python', ['-c', 'import sys;print("{}{}{}".format(*sys.version_info[:3]))'], options);
         return output.trim();
     });
 }

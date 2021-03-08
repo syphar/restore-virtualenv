@@ -29,7 +29,9 @@ test('get hash for file glob', async () => {
 })
 
 test('get hash for multiple globs', async () => {
-  var hash = await utils.hashFiles('**/dummy_file2.txt\n**/dummy_file.txt')
+  var hash = await utils.hashFiles(
+    '__tests__/dummy_file2.txt\n__tests__/**/dummy_file.txt'
+  )
 
   expect(hash).toBe(test_requirement_hash)
 })

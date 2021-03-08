@@ -78,7 +78,7 @@ jobs:
         with:
           timeout_minutes: 2
           max_attempts: 5
-          retry_on: error
+          retry_on: any
           command: npm test
 
   build:

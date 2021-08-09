@@ -49,7 +49,10 @@ function run() {
             const custom_cache_key = core.getInput('custom_cache_key_element', {
                 required: true
             });
-            const virtualenv_dir = yield utils.virtualenv_directory();
+            const custom_virtualenv_dir = core.getInput('custom_virtualenv_dir', {
+                required: true
+            });
+            const virtualenv_dir = yield utils.virtualenv_directory(custom_virtualenv_dir);
             core.saveState('VIRTUALENV_DIRECTORY', virtualenv_dir);
             core.setOutput('virtualenv-directory', virtualenv_dir);
             const cache_key = yield utils.cache_key(requirement_files, custom_cache_key);
@@ -160,7 +163,7 @@ function cache_key(requirement_files, custom_cache_key) {
     });
 }
 exports.cache_key = cache_key;
-function virtualenv_directory() {
+function virtualenv_directory(custom_virtualenv_dir) {
     return __awaiter(this, void 0, void 0, function* () {
         let home = '';
         if (process.platform === 'win32') {
@@ -171,7 +174,7 @@ function virtualenv_directory() {
         }
         const virtualenv_base = `${home}${path.sep}.virtualenvs`;
         yield io.mkdirP(virtualenv_base);
-        return `${virtualenv_base}${path.sep}.venv`;
+        return `${virtualenv_base}${path.sep}${custom_virtualenv_dir}`;
     });
 }
 exports.virtualenv_directory = virtualenv_directory;

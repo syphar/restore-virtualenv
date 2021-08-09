@@ -130,6 +130,9 @@ For testing and cache-busting you can provide a string that will included in the
 
 Default is: `v1`
 
+### `custom_virtualenv_dir`
+By default the virtual environment will be created under `~/.venv`. With this input you can define a custom directory, relative to the home-directory.
+
 ## License
 
 The project is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).

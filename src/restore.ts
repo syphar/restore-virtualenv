@@ -12,8 +12,11 @@ async function run(): Promise<void> {
     const custom_cache_key = core.getInput('custom_cache_key_element', {
       required: true
     })
+    const custom_virtualenv_dir = core.getInput('custom_virtualenv_dir', {
+      required: true
+    })
 
-    const virtualenv_dir = await utils.virtualenv_directory()
+    const virtualenv_dir = await utils.virtualenv_directory(custom_virtualenv_dir)
     core.saveState('VIRTUALENV_DIRECTORY', virtualenv_dir)
     core.setOutput('virtualenv-directory', virtualenv_dir)
 

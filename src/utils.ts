@@ -38,7 +38,9 @@ export async function cache_key(
   return `${base}-${hash}`
 }
 
-export async function virtualenv_directory(): Promise<string> {
+export async function virtualenv_directory(
+  custom_virtualenv_dir: string
+): Promise<string> {
   let home = ''
   if (process.platform === 'win32') {
     home = `${process.env['HOMEDRIVE']}${process.env['HOMEPATH']}`
@@ -49,7 +51,7 @@ export async function virtualenv_directory(): Promise<string> {
   const virtualenv_base = `${home}${path.sep}.virtualenvs`
   await io.mkdirP(virtualenv_base)
 
-  return `${virtualenv_base}${path.sep}.venv`
+  return `${virtualenv_base}${path.sep}${custom_virtualenv_dir}`
 }
 
 export function logWarning(message: string): void {

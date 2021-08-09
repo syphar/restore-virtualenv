@@ -232,3 +232,108 @@ jobs:
       - name: create dummy requirements file
         run: echo "tests" > requirements.txt
       - uses: ./
+
+  populate_new_cache_custom_venv:
+    name: populate new cache (custom venv)
+    needs: build
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: ./
+        id: cache
+        with:
+          requirement_files: "__tests__/dummy*.txt"
+          custom_cache_key_element: ${{ env.custom_cache_key_element }}
+          custom_virtualenv_dir: ".venv-custom"
+
+      - name: assert cache-hit = false
+        uses: nick-invision/assert-action@v1.1.0
+        with:
+          expected: false
+          actual: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: assert virtualenv-directory contains .venv
+        uses: nick-invision/assert-action@v1.1.0
+        with:
+          comparison: contains
+          expected: .venv
+          actual: ${{ steps.cache.outputs.virtualenv-directory }}
+
+      - name: assert env.VIRTUAL_ENV contains .venv
+        uses: nick-invision/assert-action@v1.1.0
+        with:
+          comparison: contains
+          expected: .venv-custom
+          actual: ${{ env.VIRTUAL_ENV }}
+
+      - name: check if virtualenv-directory exists
+        run: ls ${{ env.VIRTUAL_ENV }}
+
+      - name: install dummy package to be cached
+        run: "pip install python-dateutil"
+
+
+  use_existing_cache_custom_venv:
+    name: use existing cache (custom venv)
+    needs: populate_new_cache_custom_venv
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: [3.9]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: ./
+        id: cache
+        with:
+          requirement_files: "__tests__/dummy*.txt"
+          custom_cache_key_element: ${{ env.custom_cache_key_element }}
+          custom_virtualenv_dir: ".venv-custom"
+
+      - name: assert cache-hit = true
+        uses: nick-invision/assert-action@v1.1.0
+        with:
+          expected: true
+          actual: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: assert virtualenv-directory contains .venv
+        uses: nick-invision/assert-action@v1.1.0
+        with:
+          comparison: contains
+          expected: .venv-custom
+          actual: ${{ steps.cache.outputs.virtualenv-directory }}
+
+      - name: load installed package list
+        run: "pip freeze > pip_package_list.txt"
+
+      - uses: pCYSl5EDgo/cat@master
+        id: cat
+        with:
+          path: pip_package_list.txt
+
+      - name: assert package is installed
+        uses: nick-invision/assert-action@v1.1.0
+        with:
+          comparison: contains
+          expected: python-dateutil
+          actual: ${{ steps.cat.outputs.text}}

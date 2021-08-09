@@ -23,6 +23,11 @@ inputs:
         **/Pipfile.lock
         **/poetry.lock
 
+  custom_virtualenv_dir:
+    required: false
+    description: "custom directory for the virtual environment"
+    default: ".venv"
+
 outputs:
   cache-hit:
     description: "A boolean value to indicate if a cache was restored"

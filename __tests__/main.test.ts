@@ -19,7 +19,9 @@ test('get python version', async () => {
 })
 
 test('get virtualenv directory', async () => {
-  expect(await utils.virtualenv_directory('venv-custom')).toContain('venv-custom')
+  expect(await utils.virtualenv_directory('venv-custom')).toContain(
+    'venv-custom'
+  )
 })
 
 test('get hash for file glob', async () => {

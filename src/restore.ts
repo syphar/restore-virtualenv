@@ -16,7 +16,9 @@ async function run(): Promise<void> {
       required: true
     })
 
-    const virtualenv_dir = await utils.virtualenv_directory(custom_virtualenv_dir)
+    const virtualenv_dir = await utils.virtualenv_directory(
+      custom_virtualenv_dir
+    )
     core.saveState('VIRTUALENV_DIRECTORY', virtualenv_dir)
     core.setOutput('virtualenv-directory', virtualenv_dir)
 

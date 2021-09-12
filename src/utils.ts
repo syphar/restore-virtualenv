@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
-import * as glob from '@actions/glob'
-import * as exec from '@actions/exec'
-import * as io from '@actions/io'
 import * as crypto from 'crypto'
+import * as exec from '@actions/exec'
 import * as fs from 'fs'
+import * as glob from '@actions/glob'
+import * as io from '@actions/io'
 import * as md5File from 'md5-file'
 import * as path from 'path'
 
@@ -67,11 +67,11 @@ export async function hashFiles(patterns: string): Promise<string> {
   let hasMatch = false
   for await (const file of globber.globGenerator()) {
     if (!file.startsWith(`${githubWorkspace}${path.sep}`)) {
-      core.info(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`)
+      core.info(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`) // eslint-disable-line i18n-text/no-en
       continue
     }
     if (fs.statSync(file).isDirectory()) {
-      core.info(`Skip directory '${file}'.`)
+      core.info(`Skip directory '${file}'.`) // eslint-disable-line i18n-text/no-en
       continue
     }
 

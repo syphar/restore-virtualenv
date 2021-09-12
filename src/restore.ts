@@ -1,8 +1,8 @@
-import * as core from '@actions/core'
 import * as cache from '@actions/cache'
+import * as core from '@actions/core'
 import * as exec from '@actions/exec'
-import * as utils from './utils'
 import * as path from 'path'
+import * as utils from './utils'
 
 async function run(): Promise<void> {
   try {
@@ -36,12 +36,12 @@ async function run(): Promise<void> {
     core.saveState('VIRTUALENV_CACHE_MATCHED_KEY', matched_key)
 
     if (!matched_key) {
-      core.info('Cache not found. creating new virtualenv')
+      core.info('Cache not found. creating new virtualenv') // eslint-disable-line i18n-text/no-en
       core.setOutput('cache-hit', false.toString())
 
       await exec.exec('python', ['-m', 'venv', virtualenv_dir])
     } else {
-      core.info(`Cache restored from key: ${matched_key}`)
+      core.info(`Cache restored from key: ${matched_key}`) // eslint-disable-line i18n-text/no-en
       core.setOutput('cache-hit', true.toString())
     }
 
@@ -54,7 +54,7 @@ async function run(): Promise<void> {
       core.addPath(`${virtualenv_dir}${path.sep}bin`)
     }
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed((error as Error).message)
   }
 }
 

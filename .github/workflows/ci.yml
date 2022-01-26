@@ -118,7 +118,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: [3.9]
+        python-version: ["3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -168,7 +168,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: [3.9]
+        python-version: ["3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -220,7 +220,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: [3.9]
+        python-version: ["3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -240,7 +240,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: [3.9]
+        python-version: ["3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -292,7 +292,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: [3.9]
+        python-version: ["3.9", "3.10"]
 
     runs-on: ${{ matrix.os }}
     steps:

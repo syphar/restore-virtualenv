@@ -25,7 +25,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/cache": "^2.0.5",
+    "@actions/cache": "^2.0.6",
     "@actions/core": "^1.8.2",
     "@actions/exec": "^1.1.1",
     "@actions/io": "^1.1.2",
@@ -38,12 +38,12 @@
     "@vercel/ncc": "^0.33.4",
     "eslint": "^8.17.0",
     "eslint-plugin-github": "^4.3.6",
-    "eslint-plugin-jest": "^26.4.6",
+    "eslint-plugin-jest": "^26.5.3",
     "jest": "^27.5.1",
     "jest-circus": "^27.4.6",
     "js-yaml": "^4.1.0",
     "prettier": "2.6.2",
     "ts-jest": "^27.1.4",
-    "typescript": "^4.7.2"
+    "typescript": "^4.7.3"
   }
 }

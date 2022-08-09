@@ -910,6 +910,7 @@ const util = __importStar(__nccwpck_require__(3837));
 const utils = __importStar(__nccwpck_require__(1518));
 const constants_1 = __nccwpck_require__(8840);
 const requestUtils_1 = __nccwpck_require__(3981);
+const abort_controller_1 = __nccwpck_require__(2557);
 /**
  * Pipes the body of a HTTP response to a stream
  *
@@ -1093,11 +1094,16 @@ function downloadCacheStorageSDK(archiveLocation, archivePath, options) {
             const fd = fs.openSync(archivePath, 'w');
             try {
                 downloadProgress.startDisplayTimer();
+                const abortSignal = abort_controller_1.AbortController.timeout(options.segmentTimeoutInMs || 3600000);
+                abortSignal.addEventListener('abort', () => {
+                    core.warning('Aborting cache download as it exceeded the timeout.');
+                });
                 while (!downloadProgress.isDone()) {
                     const segmentStart = downloadProgress.segmentOffset + downloadProgress.segmentSize;
                     const segmentSize = Math.min(maxSegmentSize, contentLength - segmentStart);
                     downloadProgress.nextSegment(segmentSize);
                     const result = yield client.downloadToBuffer(segmentStart, segmentSize, {
+                        abortSignal,
                         concurrency: options.downloadConcurrency,
                         onProgress: downloadProgress.onProgress()
                     });
@@ -1462,7 +1468,8 @@ function getDownloadOptions(copy) {
     const result = {
         useAzureSdk: true,
         downloadConcurrency: 8,
-        timeoutInMs: 30000
+        timeoutInMs: 30000,
+        segmentTimeoutInMs: 3600000
     };
     if (copy) {
         if (typeof copy.useAzureSdk === 'boolean') {
@@ -1474,10 +1481,14 @@ function getDownloadOptions(copy) {
         if (typeof copy.timeoutInMs === 'number') {
             result.timeoutInMs = copy.timeoutInMs;
         }
+        if (typeof copy.segmentTimeoutInMs === 'number') {
+            result.segmentTimeoutInMs = copy.segmentTimeoutInMs;
+        }
     }
     core.debug(`Use Azure SDK: ${result.useAzureSdk}`);
     core.debug(`Download concurrency: ${result.downloadConcurrency}`);
     core.debug(`Request timeout (ms): ${result.timeoutInMs}`);
+    core.debug(`Segment download timeout (ms): ${result.segmentTimeoutInMs}`);
     return result;
 }
 exports.getDownloadOptions = getDownloadOptions;

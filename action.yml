@@ -3,7 +3,7 @@ name: 'restore or create a python virtualenv'
 description: '1-liner to restore and activate a cached virtualenv, or create a new one.'
 author: 'syphar'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/restore/index.js'
   post: 'dist/save/index.js'
   post-if: 'success()'

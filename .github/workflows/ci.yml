@@ -44,7 +44,7 @@ jobs:
 
       - name: Cancel complete workflow if this job fails...
         if: ${{ failure() }}
-        uses: andymckay/cancel-action@0.2
+        uses: andymckay/cancel-action@0.3
 
   unittests:
     needs: cancel-previous

@@ -192,35 +192,42 @@ function logWarning(message) {
 }
 exports.logWarning = logWarning;
 function hashFiles(patterns) {
-    var e_1, _a;
+    var _a, e_1, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         const result = crypto.createHash('md5');
         const githubWorkspace = process.cwd();
         const globber = yield glob.create(patterns, { followSymbolicLinks: true });
         let hasMatch = false;
         try {
-            for (var _b = __asyncValues(globber.globGenerator()), _c; _c = yield _b.next(), !_c.done;) {
-                const file = _c.value;
-                if (!file.startsWith(`${githubWorkspace}${path.sep}`)) {
-                    core.info(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`); // eslint-disable-line i18n-text/no-en
-                    continue;
+            for (var _d = true, _e = __asyncValues(globber.globGenerator()), _f; _f = yield _e.next(), _a = _f.done, !_a;) {
+                _c = _f.value;
+                _d = false;
+                try {
+                    const file = _c;
+                    if (!file.startsWith(`${githubWorkspace}${path.sep}`)) {
+                        core.info(`Ignore '${file}' since it is not under GITHUB_WORKSPACE.`); // eslint-disable-line i18n-text/no-en
+                        continue;
+                    }
+                    if (fs.statSync(file).isDirectory()) {
+                        core.info(`Skip directory '${file}'.`); // eslint-disable-line i18n-text/no-en
+                        continue;
+                    }
+                    core.debug(`hashing file ${file}`);
+                    const file_hash = yield md5File.default(file);
+                    result.write(file_hash);
+                    if (!hasMatch) {
+                        hasMatch = true;
+                    }
                 }
-                if (fs.statSync(file).isDirectory()) {
-                    core.info(`Skip directory '${file}'.`); // eslint-disable-line i18n-text/no-en
-                    continue;
-                }
-                core.debug(`hashing file ${file}`);
-                const file_hash = yield md5File.default(file);
-                result.write(file_hash);
-                if (!hasMatch) {
-                    hasMatch = true;
+                finally {
+                    _d = true;
                 }
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
-                if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                if (!_d && !_a && (_b = _e.return)) yield _b.call(_e);
             }
             finally { if (e_1) throw e_1.error; }
         }

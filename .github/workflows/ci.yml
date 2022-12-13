@@ -136,20 +136,20 @@ jobs:
           custom_cache_key_element: ${{ env.custom_cache_key_element }}
 
       - name: assert cache-hit = false
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           expected: false
           actual: ${{ steps.cache.outputs.cache-hit }}
 
       - name: assert virtualenv-directory contains .venv
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
       - name: assert env.VIRTUAL_ENV contains .venv
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: .venv
@@ -186,13 +186,13 @@ jobs:
           custom_cache_key_element: ${{ env.custom_cache_key_element }}
 
       - name: assert cache-hit = true
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           expected: true
           actual: ${{ steps.cache.outputs.cache-hit }}
 
       - name: assert virtualenv-directory contains .venv
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: .venv
@@ -207,7 +207,7 @@ jobs:
           path: pip_package_list.txt
 
       - name: assert package is installed
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: python-dateutil
@@ -259,20 +259,20 @@ jobs:
           custom_virtualenv_dir: ".venv-custom"
 
       - name: assert cache-hit = false
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           expected: false
           actual: ${{ steps.cache.outputs.cache-hit }}
 
       - name: assert virtualenv-directory contains .venv
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: .venv
           actual: ${{ steps.cache.outputs.virtualenv-directory }}
 
       - name: assert env.VIRTUAL_ENV contains .venv
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: .venv-custom
@@ -311,13 +311,13 @@ jobs:
           custom_virtualenv_dir: ".venv-custom"
 
       - name: assert cache-hit = true
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           expected: true
           actual: ${{ steps.cache.outputs.cache-hit }}
 
       - name: assert virtualenv-directory contains .venv
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: .venv-custom
@@ -332,7 +332,7 @@ jobs:
           path: pip_package_list.txt
 
       - name: assert package is installed
-        uses: nick-invision/assert-action@v1.2.0
+        uses: nick-invision/assert-action@v1.3.1
         with:
           comparison: contains
           expected: python-dateutil

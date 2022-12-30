@@ -74,7 +74,7 @@ jobs:
         run: npm ci
 
       - name: run tests
-        uses: nick-invision/retry@v2.8.2
+        uses: nick-invision/retry@v2.8.3
         with:
           timeout_minutes: 2
           max_attempts: 5

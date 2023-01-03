@@ -538,6 +538,10 @@ function getCacheEntry(keys, paths, options) {
         const resource = `cache?keys=${encodeURIComponent(keys.join(','))}&version=${version}`;
         const response = yield requestUtils_1.retryTypedResponse('getCacheEntry', () => __awaiter(this, void 0, void 0, function* () { return httpClient.getJson(getCacheApiUrl(resource)); }));
         if (response.statusCode === 204) {
+            // List cache for primary key only if cache miss occurs
+            if (core.isDebug()) {
+                yield printCachesListForDiagnostics(keys[0], httpClient, version);
+            }
             return null;
         }
         if (!requestUtils_1.isSuccessStatusCode(response.statusCode)) {
@@ -555,6 +559,22 @@ function getCacheEntry(keys, paths, options) {
     });
 }
 exports.getCacheEntry = getCacheEntry;
+function printCachesListForDiagnostics(key, httpClient, version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const resource = `caches?key=${encodeURIComponent(key)}`;
+        const response = yield requestUtils_1.retryTypedResponse('listCache', () => __awaiter(this, void 0, void 0, function* () { return httpClient.getJson(getCacheApiUrl(resource)); }));
+        if (response.statusCode === 200) {
+            const cacheListResult = response.result;
+            const totalCount = cacheListResult === null || cacheListResult === void 0 ? void 0 : cacheListResult.totalCount;
+            if (totalCount && totalCount > 0) {
+                core.debug(`No matching cache found for cache key '${key}', version '${version} and scope ${process.env['GITHUB_REF']}. There exist one or more cache(s) with similar key but they have different version or scope. See more info on cache matching here: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key \nOther caches with similar key:`);
+                for (const cacheEntry of (cacheListResult === null || cacheListResult === void 0 ? void 0 : cacheListResult.artifactCaches) || []) {
+                    core.debug(`Cache Key: ${cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.cacheKey}, Cache Version: ${cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.cacheVersion}, Cache Scope: ${cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.scope}, Cache Created: ${cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.creationTime}`);
+                }
+            }
+        }
+    });
+}
 function downloadCache(archiveLocation, archivePath, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const archiveUrl = new url_1.URL(archiveLocation);

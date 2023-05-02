@@ -1,6 +1,18 @@
 # restore-virtualenv
 
-#### 1-liner to create or restore a python virtualenv
+**this package is not maintained any more.**
+
+Most of its functionality was added to the standard `setup-python` action, see
+https://github.com/actions/setup-python#caching-packages-dependencies.
+
+If you want to take over maintenance of this action, just contact me directly.
+
+
+
+------------------
+
+
+## 1-liner to create or restore a python virtualenv
 <p align="center">
   <a href="https://github.com/syphar/restore-virtualenv"><img alt="restore-virtualenv status" src="https://github.com/syphar/restore-virtualenv/workflows/CI/badge.svg"></a>
 </p>
